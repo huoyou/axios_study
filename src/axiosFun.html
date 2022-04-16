@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>axiosFun</title>
+  </head>
+  <body>
+    <button onclick="testGet()">测试get请求</button>
+    <button onclick="testPost()">测试post请求</button>
+    <button onclick="testPut()">测试put请求</button>
+    <button onclick="testDelete()">测试delete请求</button>
+
+    <script>
+      function axios({ method = 'get', url, params = {}, data = {} }) {
+        return new Promise((resolve, reject) => {
+          method = method.toUpperCase();
+          let urlStr = '';
+          Object.keys(params).forEach((key) => {
+            console.log(`🚀 ~ Object.keys ~ key`, key, typeof params);
+            urlStr += `${key}=${params[key]}&`;
+          });
+          if (urlStr) {
+            urlStr = urlStr.substring(0, urlStr.length - 1);
+            url += `?${urlStr}`;
+          }
+          const xhr = new XMLHttpRequest();
+
+          xhr.open(method, url, true);
+
+          if (method === 'POST' || method === 'PUT') {
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(data));
+          } else {
+            xhr.send();
+          }
+
+          xhr.onreadystatechange = function (val) {
+            if (xhr.readyState !== 4) {
+              return;
+            }
+            const { status, statusText } = xhr;
+            if (status >= 200 && status <= 299) {
+              resolve({
+                data: JSON.parse(xhr.response),
+                status,
+                statusText
+              });
+            } else {
+              // reject(new Error('失败了'));
+              reject({ message: '失败了22' });
+            }
+          };
+        });
+      }
+      function testGet() {
+        axios({
+          method: 'get',
+          url: 'http://localhost:3000/posts1',
+          params: {
+            id: 1
+          }
+        })
+          .then((res) => {
+            console.log('res', res);
+          })
+          .catch((err) => {
+            console.log(`🚀 ~ testGet ~ err222`, err);
+          });
+      }
+      function testPost() {
+        axios({
+          method: 'post',
+          url: 'http://localhost:3000/posts',
+          data: {
+            title: '3',
+            author: 'xj'
+          }
+        }).then((res) => {
+          console.log('res', res);
+        });
+      }
+      function testPut() {
+        axios({
+          method: 'put',
+          url: 'http://localhost:3000/posts/3',
+          data: {
+            title: '3---change',
+            author: 'xj'
+          }
+        }).then((res) => {
+          console.log('res', res);
+        });
+      }
+      function testDelete() {
+        axios({
+          method: 'delete',
+          url: 'http://localhost:3000/posts/3'
+        }).then((res) => {
+          console.log('res', res);
+        });
+      }
+    </script>
+  </body>
+</html>

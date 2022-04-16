@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>axiosCancel</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.26.1/axios.min.js"></script>
+  </head>
+  <body>
+    <button onclick="testGet()">请求1</button>
+    <button onclick="testGet2()">请求2</button>
+    <button onclick="cancleRequest()">取消请求</button>
+
+    <script>
+      let cancel;
+      axios.defaults.baseURL = 'http://localhost:3000';
+      axios.interceptors.request.use(
+        (config) => {
+          typeof cancel === 'function' && cancel('请求取消了');
+          config.cancelToken = new axios.CancelToken((c) => {
+            cancel = c;
+          });
+          return config;
+        },
+        (err) => {
+          return Promise.reject(err);
+        }
+      );
+      axios.interceptors.response.use(
+        (response) => {
+          cancel = null;
+          return response;
+        },
+        (err) => {
+          if (axios.isCancel(err)) {
+            console.log('Request canceled', err.message);
+            // return new Promise(() => {});
+						return Promise.reject(err);
+          } else {
+            cancel = null;
+            return Promise.reject(err);
+          }
+        }
+      );
+      function testGet() {
+        axios({
+          method: 'get',
+          url: '/posts1',
+          params: {
+            id: 1
+          }
+        })
+          .then((res) => {
+            console.log('res', res);
+          })
+          .catch((err) => {
+            console.log(`🚀 ~ testGet ~ err`, err);
+          });
+      }
+      function testGet2() {
+        axios({
+          method: 'get',
+          url: '/posts'
+        })
+          .then((res) => {
+            console.log('res', res);
+          })
+          .catch((err) => {
+            console.log(`🚀 ~ testGet2 ~ err`, err);
+          });
+      }
+      function cancleRequest() {
+        typeof cancel === 'function' && cancel('请求取消了');
+      }
+    </script>
+  </body>
+</html>
